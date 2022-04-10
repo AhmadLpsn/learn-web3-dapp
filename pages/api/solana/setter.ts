@@ -5,6 +5,7 @@ import {
   TransactionInstruction,
   Transaction,
   sendAndConfirmTransaction,
+  Signer,
 } from '@solana/web3.js';
 import type {NextApiRequest, NextApiResponse} from 'next';
 import {getNodeURL} from '@figment-solana/lib';
@@ -26,13 +27,35 @@ export default async function setter(
 
     // this your turn to figure out
     // how to create this instruction
-    const instruction = new TransactionInstruction(undefined);
+    const instruction = new TransactionInstruction({
+      keys: [
+        {
+          isSigner: false,
+          isWritable: true,
+          pubkey: greeterPublicKey,
+        },
+      ],
+      programId: programKey,
+    });
 
+    const signers: Signer[] = [
+      {
+        publicKey: payerKeypair.publicKey,
+        secretKey: payerKeypair.secretKey,
+      },
+    ];
+
+    const transaction = new Transaction();
+    transaction.add(instruction);
     // this your turn to figure out
     // how to create this transaction
-    const hash = await sendAndConfirmTransaction(undefined);
+    const hash = await sendAndConfirmTransaction(
+      connection,
+      transaction,
+      signers,
+    );
 
-    res.status(200).json(undefined);
+    res.status(200).json(hash);
   } catch (error) {
     console.error(error);
     res.status(500).json('Get balance failed');
